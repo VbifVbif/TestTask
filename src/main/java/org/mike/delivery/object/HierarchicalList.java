@@ -1,4 +1,4 @@
-package org.mike.delivery.entity;
+package org.mike.delivery.object;
 
 import java.util.ArrayList;
 import java.util.List;

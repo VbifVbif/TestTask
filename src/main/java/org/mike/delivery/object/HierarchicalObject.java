@@ -1,4 +1,4 @@
-package org.mike.delivery.entity;
+package org.mike.delivery.object;
 
 import lombok.Getter;
 import lombok.Setter;
