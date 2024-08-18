@@ -1,0 +1,7 @@
+# Features
+**Part Management:** The application provides a simple interface for managing parts, accessible at the `/part` endpoint.
+
+# Technologies Used
+- **Spring Boot**
+- **Maven**
+- **Thymeleaf** (for rendering the HTML pages)
