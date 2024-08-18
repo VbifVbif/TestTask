@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Список Деталей</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .custom-field {
+            margin: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4">
+    <h2>Список Деталей</h2>
+
+    <div class="mb-3">
+        <h4>Общая сумма: <span id="total-sum">0</span></h4>
+    </div>
+
+    <form th:action="@{/submit-list}" th:object="${hierarchicalList}" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Название</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Стоимость</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody id="object-fields">
+
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-primary mb-2" onclick="addObjectField()">Добавить деталь</button>
+        <button type="submit" formaction="/submit-list/excel" class="btn btn-success mb-2">Сохранить в Excel</button>
+        <button type="submit" formaction="/submit-list/pdf" class="btn btn-danger mb-2">Сохранить в PDF</button>
+    </form>
+</div>
+
+<script>
+    let objectIndex = 0;
+
+    function addObjectField() {
+        const tbody = document.getElementById('object-fields');
+        const tr = document.createElement('tr');
+        tr.classList.add('object-field');
+        tr.innerHTML = `
+            <td class="p-2">
+                <input type="text" class="form-control custom-field" name="objects[${objectIndex}].name" placeholder="Название" required>
+            </td>
+            <td class="p-2">
+                <input type="number" class="form-control custom-field" name="objects[${objectIndex}].price" placeholder="Цена" required oninput="calculateCost(this)">
+            </td>
+            <td class="p-2">
+                <input type="number" class="form-control custom-field" name="objects[${objectIndex}].quantity" placeholder="Количество" required oninput="calculateCost(this)">
+            </td>
+            <td class="p-2">
+                <input class="form-control custom-field" name="objects[${objectIndex}].cost" value="0" placeholder="Стоимость" readonly>
+            </td>
+            <td class="p-2 d-flex justify-content-around">
+                <button type="button" class="btn btn-primary custom-field" onclick="addSubObjectField(${objectIndex}, 'objects[${objectIndex}]')">Добавить</button>
+                <button type="button" class="btn btn-danger custom-field" onclick="removeObjectField(this)">Удалить</button>
+            </td>
+        `;
+        const subObjectRow = document.createElement('tr');
+        subObjectRow.innerHTML = `
+            <td colspan="5" class="p-2">
+                <div id="sub-object-fields-${objectIndex}"></div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        tbody.appendChild(subObjectRow);
+        objectIndex++;
+
+        updateTotalSum();
+    }
+
+    function calculateCost(element) {
+        const row = element.closest('tr');
+        const price = parseFloat(row.querySelector('input[name*="price"]').value) || 0;
+        const quantity = parseFloat(row.querySelector('input[name*="quantity"]').value) || 0;
+        let totalCost = Math.floor(price * quantity);
+
+        const subObjectFields = row.nextElementSibling ? row.nextElementSibling.querySelectorAll('table .sub-object-field') : [];
+        subObjectFields.forEach(subRow => {
+            const subPrice = parseFloat(subRow.querySelector('input[name*="price"]').value) || 0;
+            const subQuantity = parseFloat(subRow.querySelector('input[name*="quantity"]').value) || 0;
+            totalCost += Math.floor(subPrice * subQuantity);
+        });
+
+        const costField = row.querySelector('input[name*="cost"]');
+        costField.value = totalCost;
+
+        const parentRow = row.closest('table')?.closest('tr')?.previousElementSibling;
+        if (parentRow && parentRow.querySelector('input[name*="price"]')) {
+            calculateCost(parentRow.querySelector('input[name*="price"]'));
+        }
+
+        updateTotalSum();
+    }
+
+    function updateTotalSum() {
+        let totalSum = 0;
+        const mainObjectFields = document.querySelectorAll('#object-fields > tr.object-field');
+
+        mainObjectFields.forEach(row => {
+            const costField = row.querySelector('input[name*="cost"]');
+            if (costField) {
+                totalSum += parseInt(costField.value) || 0;
+            }
+        });
+
+        document.getElementById('total-sum').textContent = totalSum;
+    }
+
+    function addSubObjectField(parentIndex, parentPath) {
+        const parentDivId = `sub-object-fields-${parentIndex}-${parentPath.replace(/\./g, '-')}`;
+        const subObjectFieldsDiv = document.getElementById(parentDivId) || document.getElementById(`sub-object-fields-${parentIndex}`);
+        const index = subObjectFieldsDiv.childElementCount;
+        const path = `${parentPath}.subObjects[${index}]`;
+
+        const subObjectTable = document.createElement('table');
+        subObjectTable.classList.add('w-100');
+        subObjectTable.style.marginLeft = "20px";
+        const subObjectRow = document.createElement('tr');
+        subObjectRow.classList.add('sub-object-field');
+        subObjectRow.innerHTML = `
+            <td class="p-2">
+                <input type="text" class="form-control custom-field" name="${path}.name" placeholder="Название" required>
+            </td>
+            <td class="p-2">
+                <input type="number" class="form-control custom-field" name="${path}.price" placeholder="Цена" required oninput="calculateCost(this)">
+            </td>
+            <td class="p-2">
+                <input type="number" class="form-control custom-field" name="${path}.quantity" placeholder="Количество" required oninput="calculateCost(this)">
+            </td>
+            <td class="p-2">
+                <input class="form-control custom-field" name="${path}.cost" value="0" placeholder="Стоимость" readonly>
+            </td>
+            <td class="p-2 d-flex justify-content-around">
+                <button type="button" class="btn btn-primary custom-field" onclick="addSubObjectField(${parentIndex}, '${path}')">Добавить</button>
+                <button type="button" class="btn btn-danger custom-field" onclick="removeObjectField(this)">Удалить</button>
+            </td>
+        `;
+        subObjectTable.appendChild(subObjectRow);
+        const nestedSubObjectRow = document.createElement('tr');
+        nestedSubObjectRow.innerHTML = `
+            <td colspan="5" class="p-2">
+                <div id="sub-object-fields-${parentIndex}-${path.replace(/\./g, '-')}"></div>
+            </td>
+        `;
+        subObjectTable.appendChild(nestedSubObjectRow);
+        subObjectFieldsDiv.appendChild(subObjectTable);
+
+        const parentRow = subObjectFieldsDiv.closest('tr').previousElementSibling;
+        if (parentRow && parentRow.querySelector('input[name*="price"]')) {
+            calculateCost(parentRow.querySelector('input[name*="price"]'));
+        }
+    }
+
+    function removeObjectField(button) {
+        const row = button.closest('tr');
+        const nextRow = row.nextElementSibling;
+        if (nextRow && nextRow.querySelector('div[id^="sub-object-fields"]')) {
+            nextRow.remove();
+        }
+        row.remove();
+
+        const parentRow = row.closest('table').closest('tr').previousElementSibling;
+        if (parentRow && parentRow.querySelector('input[name*="price"]')) {
+            calculateCost(parentRow.querySelector('input[name*="price"]'));
+        }
+
+        updateTotalSum();
+    }
+</script>
+
+</body>
+</html>
