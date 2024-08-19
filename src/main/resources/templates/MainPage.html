@@ -127,37 +127,37 @@
         const subObjectRow = document.createElement('tr');
         subObjectRow.classList.add('sub-object-field');
         subObjectRow.innerHTML = `
-            <td class="p-2">
-                <input type="text" class="form-control custom-field" name="${path}.name" placeholder="Название" required>
-            </td>
-            <td class="p-2">
-                <input type="number" class="form-control custom-field" name="${path}.price" placeholder="Цена" required oninput="calculateCost(this)">
-            </td>
-            <td class="p-2">
-                <input type="number" class="form-control custom-field" name="${path}.quantity" placeholder="Количество" required oninput="calculateCost(this)">
-            </td>
-            <td class="p-2">
-                <input class="form-control custom-field" name="${path}.cost" value="0" placeholder="Стоимость" readonly>
-            </td>
-            <td class="p-2 d-flex justify-content-around">
-                <button type="button" class="btn btn-primary custom-field" onclick="addSubObjectField(${parentIndex}, '${path}')">Добавить</button>
-                <button type="button" class="btn btn-danger custom-field" onclick="removeObjectField(this)">Удалить</button>
-            </td>
-        `;
+        <td class="p-2">
+            <input type="text" class="form-control custom-field" name="${path}.name" placeholder="Название" required>
+        </td>
+        <td class="p-2">
+            <input type="number" class="form-control custom-field" name="${path}.price" placeholder="Цена" required oninput="calculateCost(this)">
+        </td>
+        <td class="p-2">
+            <input type="number" class="form-control custom-field" name="${path}.quantity" placeholder="Количество" required oninput="calculateCost(this)">
+        </td>
+        <td class="p-2">
+            <input class="form-control custom-field" name="${path}.cost" value="0" placeholder="Стоимость" readonly>
+        </td>
+        <td class="p-2 d-flex justify-content-around">
+            <button type="button" class="btn btn-primary custom-field" onclick="addSubObjectField(${parentIndex}, '${path}')">Добавить</button>
+            <button type="button" class="btn btn-danger custom-field" onclick="removeObjectField(this)">Удалить</button>
+        </td>
+    `;
         subObjectTable.appendChild(subObjectRow);
         const nestedSubObjectRow = document.createElement('tr');
         nestedSubObjectRow.innerHTML = `
-            <td colspan="5" class="p-2">
-                <div id="sub-object-fields-${parentIndex}-${path.replace(/\./g, '-')}"></div>
-            </td>
-        `;
+        <td colspan="5" class="p-2">
+            <div id="sub-object-fields-${parentIndex}-${path.replace(/\./g, '-')}"></div>
+        </td>
+    `;
         subObjectTable.appendChild(nestedSubObjectRow);
         subObjectFieldsDiv.appendChild(subObjectTable);
-
         const parentRow = subObjectFieldsDiv.closest('tr').previousElementSibling;
         if (parentRow && parentRow.querySelector('input[name*="price"]')) {
             calculateCost(parentRow.querySelector('input[name*="price"]'));
         }
+        updateTotalSum();
     }
 
     function removeObjectField(button) {
