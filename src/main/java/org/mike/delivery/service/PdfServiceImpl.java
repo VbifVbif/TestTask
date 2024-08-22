@@ -30,7 +30,7 @@ public class PdfServiceImpl implements PdfService{
 
         ClassPathResource fontResource = new ClassPathResource("fonts/font.ttf");
         PDType0Font font = PDType0Font.load(document, fontResource.getInputStream());
-        contentStream.setFont(font, 12); // Устанавливаем шрифт
+        contentStream.setFont(font, 12);
 
         try (Workbook workbook = new XSSFWorkbook(new ByteArrayInputStream(excelBytes))) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -94,7 +94,6 @@ public class PdfServiceImpl implements PdfService{
             }
 
             if (formula.matches("SUMIF\\(.*, \"<>\".*, .*\\)")) {
-                // Возвращаем сумму всех главных объектов (объекты на верхнем уровне)
                 double totalCost = calculateTotalCostOfMainObjects(hierarchicalList);
                 return String.valueOf(totalCost);
             }
